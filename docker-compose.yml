@@ -1,0 +1,105 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${ARGOS_POSTGRES_DB:-argos}
+      POSTGRES_USER: ${ARGOS_POSTGRES_USER:-argos}
+      POSTGRES_PASSWORD: ${ARGOS_POSTGRES_PASSWORD:-argos}
+    ports:
+      - "${ARGOS_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${ARGOS_REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    ports:
+      - "${ARGOS_QDRANT_PORT:-6333}:6333"
+      - "${ARGOS_QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file:
+      - .env
+    environment:
+      ARGOS_APP_NAME: ARGOS
+      ARGOS_ENVIRONMENT: ${ARGOS_ENVIRONMENT:-development}
+      ARGOS_API_HOST: 0.0.0.0
+      ARGOS_API_PORT: 8000
+      ARGOS_DATABASE__URL: postgresql+asyncpg://${ARGOS_POSTGRES_USER:-argos}:${ARGOS_POSTGRES_PASSWORD:-argos}@postgres:5432/${ARGOS_POSTGRES_DB:-argos}
+      ARGOS_REDIS__URL: redis://redis:6379/0
+      ARGOS_QDRANT__URL: http://qdrant:6333
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz').read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file:
+      - .env
+    environment:
+      ARGOS_DATABASE__URL: postgresql+asyncpg://${ARGOS_POSTGRES_USER:-argos}:${ARGOS_POSTGRES_PASSWORD:-argos}@postgres:5432/${ARGOS_POSTGRES_DB:-argos}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["uv", "run", "alembic", "upgrade", "head"]
+    profiles: ["maintenance"]
+
+volumes:
+  postgres_data:
+  redis_data:
+  qdrant_data:
+
