@@ -10,14 +10,16 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 px-6 py-16 text-zinc-100">
       <div className="mx-auto flex max-w-5xl flex-col gap-16">
-        <header className="flex items-center justify-between">
+        <header className="flex flex-col gap-5 border-b border-zinc-800 pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Image src="/next.svg" alt="ARGOS" width={72} height={18} className="invert" priority />
             <span className="text-sm font-medium tracking-[0.25em] text-zinc-400">ARGOS</span>
           </div>
-          <a className="rounded-full border border-zinc-700 px-4 py-2 text-sm hover:bg-zinc-900" href="/docs">
-            API Docs
-          </a>
+          <nav className="flex gap-5 text-sm text-zinc-400" aria-label="Primary navigation">
+            <a className="hover:text-zinc-100" href="#capabilities">Capabilities</a>
+            <a className="hover:text-zinc-100" href="#workflow">Workflow</a>
+            <a className="hover:text-zinc-100" href="/docs">API Docs</a>
+          </nav>
         </header>
 
         <section className="max-w-3xl">
@@ -28,13 +30,18 @@ export default function Home() {
           </p>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-3" aria-label="ARGOS capabilities">
+        <section id="capabilities" className="grid gap-4 sm:grid-cols-3" aria-label="ARGOS capabilities">
           {capabilities.map((capability) => (
             <article key={capability} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
               <div className="mb-5 h-2 w-2 rounded-full bg-zinc-100" aria-hidden="true" />
               <p className="leading-7 text-zinc-300">{capability}</p>
             </article>
           ))}
+        </section>
+
+        <section id="workflow" className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-zinc-500">Workflow</p>
+          <p className="mt-3 max-w-2xl leading-7 text-zinc-300">Connect your services, inspect their health, and use telemetry to make operational decisions from one focused surface.</p>
         </section>
 
         <footer className="border-t border-zinc-800 pt-6 text-sm text-zinc-500">
