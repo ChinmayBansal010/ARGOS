@@ -22,7 +22,7 @@ class ComponentHealth(BaseModel):
     """Health details for one subsystem."""
 
     status: ComponentStatus
-    latency_ms: float
+    latency_ms: float = Field(ge=0)
     detail: dict[str, str] = Field(default_factory=dict)
 
 
