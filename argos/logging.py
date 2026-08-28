@@ -41,6 +41,7 @@ def configure_logging(settings: AppSettings) -> None:
         serialize=False,
         backtrace=False,
         diagnose=False,
+        enqueue=True,
     )
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
