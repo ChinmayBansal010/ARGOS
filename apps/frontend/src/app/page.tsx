@@ -20,6 +20,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Image src="/next.svg" alt="ARGOS" width={72} height={18} className="invert" priority />
             <span className="text-sm font-medium tracking-[0.25em] text-zinc-400">ARGOS</span>
+            <span className="rounded-full border border-zinc-700 px-2 py-1 text-xs text-zinc-500">v1</span>
           </div>
           <nav className="flex gap-5 text-sm text-zinc-400" aria-label="Primary navigation">
             <a className="hover:text-zinc-100" href="#capabilities">Capabilities</a>
